@@ -1,0 +1,137 @@
+#include <Wire.h>
+#include "rgb_lcd.h"
+#include <Adafruit_GPS.h>
+#include <HardwareSerial.h>
+#include "DHT.h"
+
+//LCD SETUP
+rgb_lcd lcd;
+
+
+//GPS SETUP
+HardwareSerial mySerial(1);
+#define RXPin 16
+#define TXPin 17
+Adafruit_GPS GPS(&mySerial);
+uint32_t timer = millis();
+
+//DHT11 SETUP
+#define DHTPIN 4
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+//ULTRASONIC PINS
+#define TRIG1 25
+#define ECHO1 26
+#define TRIG2 27
+#define ECHO2 14
+#define TRIG3 12
+#define ECHO3 13
+
+long readUltrasonic(int trigPin, int echoPin) {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  long duration = pulseIn(echoPin, HIGH, 25000); // 25ms timeout
+  long distance = duration * 0.034 / 2; // cm
+  return distance;
+}
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("ESP32 + GPS + LCD + DHT11 + 3xHCSR04");
+
+  //LCD setup
+  Wire.begin(21, 22);
+  lcd.begin(16, 2);
+  lcd.setRGB(colorR, colorG, colorB);
+  lcd.print("System Starting...");
+  delay(2000);
+
+  //GPS setup
+  mySerial.begin(9600, SERIAL_8N1, RXPin, TXPin);
+  GPS.begin(9600);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+  GPS.sendCommand(PGCMD_NOANTENNA);
+
+  //DHT setup
+  dht.begin();
+
+  //Ultrasonic pins
+  pinMode(TRIG1, OUTPUT);
+  pinMode(ECHO1, INPUT);
+  pinMode(TRIG2, OUTPUT);
+  pinMode(ECHO2, INPUT);
+  pinMode(TRIG3, OUTPUT);
+  pinMode(ECHO3, INPUT);
+
+  lcd.clear();
+}
+
+void loop() {
+  //GPS DATA 
+  char c = GPS.read();
+  if (GPS.newNMEAreceived()) {
+    if (!GPS.parse(GPS.lastNMEA())) return;
+  }
+
+  //DHT11 DATA
+  float temp = dht.readTemperature();
+  float hum = dht.readHumidity();
+
+  //HCSR04 DATA
+  long d1 = readUltrasonic(TRIG1, ECHO1);
+  long d2 = readUltrasonic(TRIG2, ECHO2);
+  long d3 = readUltrasonic(TRIG3, ECHO3);
+
+  //DISPLAY & LOG EVERY 2s
+  if (millis() - timer > 2000) {
+    timer = millis();
+    lcd.clear();
+
+    if (GPS.fix) {
+      //LCD line 1: Temp + Hum
+      lcd.setCursor(0, 0);
+      lcd.print(temp, 1); lcd.print("C ");
+      lcd.print(hum, 0); lcd.print("%");
+
+      // LCD line 2: Short lat/long
+      lcd.setCursor(0, 1);
+      lcd.print(GPS.latitude, 2);
+      lcd.print(GPS.lat);
+      lcd.print(" ");
+      lcd.print(GPS.longitude, 2);
+      lcd.print(GPS.lon);
+    } else {
+      lcd.setCursor(0, 0);
+      lcd.print(temp, 1); lcd.print("C ");
+      lcd.print(hum, 0); lcd.print("%");
+      lcd.setCursor(0, 1);
+      lcd.print("No GPS Fix");
+    }
+
+    //SERIAL OUTPUT
+    Serial.println("-------------------------------------------------");
+    Serial.print("Temp: "); Serial.print(temp); Serial.println(" °C");
+    Serial.print("Hum: "); Serial.print(hum); Serial.println(" %");
+    Serial.print("Dist1: "); Serial.print(d1); Serial.print(" cm  ");
+    Serial.print("Dist2: "); Serial.print(d2); Serial.print(" cm  ");
+    Serial.print("Dist3: "); Serial.print(d3); Serial.println(" cm");
+
+    if (GPS.fix) {
+      Serial.print("Time: ");
+      Serial.print(GPS.hour); Serial.print(":");
+      Serial.print(GPS.minute); Serial.print(":");
+      
+
+      Serial.print("Lat: "); Serial.print(GPS.latitude, 4); Serial.println(GPS.lat);
+      Serial.print("Lon: "); Serial.print(GPS.longitude, 4); Serial.println(GPS.lon);
+      Serial.print("Satellites: "); Serial.println((int)GPS.satellites);
+    } else {
+      Serial.println("Waiting for GPS fix...");
+    }
+  }
+}

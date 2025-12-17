@@ -15,18 +15,18 @@ HardwareSerial mySerial(1);
 #define TXPin 17
 Adafruit_GPS GPS(&mySerial);
 
-// -------- WiFi ----------
+//  WiFi 
 const char* ssid = "EO";
 const char* password = "12345678";
 
 WebServer server(80);
 
-// --------- DHT ----------
+// DHT11
 #define DHTPIN 4
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
-// --------- Ultrasonic ----
+//Ultrasonic
 #define TRIG1 33
 #define ECHO1 25
 #define TRIG2 27
@@ -34,7 +34,7 @@ DHT dht(DHTPIN, DHTTYPE);
 #define TRIG3 12
 #define ECHO3 13
 
-// --------- BMA400 --------
+//BMA400
 BlueDot_BMA400 bma400;
 
 //Timers
@@ -48,7 +48,7 @@ float hum = 0;
 long u1 = 0, u2 = 0, u3 = 0;
 float ax, ay, az, gForce;
 
-// -------- FUNCTIONS ---------
+//FUNCTIONS
 
 long readUltrasonic(int trigPin, int echoPin) {
   digitalWrite(trigPin, LOW);
@@ -88,7 +88,7 @@ void handleRoot() {
 }
 
 
-// -------- SETUP ---------
+//SETUP
 void setup() {
   Serial.begin(115200);
 
@@ -135,8 +135,6 @@ void setup() {
   bma400.init();
 }
 
-
-// -------- LOOP ---------
 void loop() {
 
   server.handleClient();
@@ -165,7 +163,7 @@ void loop() {
     gForce = sqrt(ax*ax + ay*ay + az*az);
   }
 
-  // ---- SCREEN UPDATE ----
+  //SCREEN UPDATE
   if (millis() - screenTimer > 2000) {
     screenTimer = millis();
     screenPage = (screenPage + 1) % 3;

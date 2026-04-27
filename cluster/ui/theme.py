@@ -1,0 +1,16 @@
+from PyQt5.QtGui import QColor, QLinearGradient, QBrush
+BG_TOP = QColor(3, 5, 10)
+BG_MID = QColor(8, 14, 24)
+BG_BOTTOM = QColor(4, 5, 8)
+ACCENT_BLUE = QColor(0, 170, 255)
+ACCENT_RED = QColor(255, 70, 70)
+ACCENT_AMBER = QColor(255, 185, 60)
+ACCENT_GREEN = QColor(0, 190, 120)
+TEXT = QColor(245, 248, 250)
+SUBTEXT = QColor(180, 188, 198)
+def background_brush(height):
+    g = QLinearGradient(0, 0, 0, height)
+    g.setColorAt(0.0, BG_TOP)
+    g.setColorAt(0.5, BG_MID)
+    g.setColorAt(1.0, BG_BOTTOM)
+    return QBrush(g)

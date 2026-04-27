@@ -1,0 +1,1 @@
+Offline tiles go here as z/x/y.png. Use run_download_maps.sh when Ethernet is connected.

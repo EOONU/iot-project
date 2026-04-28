@@ -1,4 +1,4 @@
-# AMG Cluster v14 Smooth Full
+
 
 ## What is fixed
 - Pi UI rebuilt for smoother running
@@ -20,7 +20,7 @@ Pi hotspot:
 
 ## Pi run
 ```bash
-cd ~/Desktop/amg_cluster_v14_smooth_full
+cd ~/Desktop/cluster
 chmod +x run_auto.sh run_download_maps.sh
 find . -type d -name __pycache__ -exec rm -rf {} +
 ./run_auto.sh
@@ -28,7 +28,7 @@ find . -type d -name __pycache__ -exec rm -rf {} +
 
 ## Download maps using Ethernet
 ```bash
-cd ~/Desktop/amg_cluster_v14_smooth_full
+cd ~/Desktop/cluster
 ./run_download_maps.sh
 ```
 
